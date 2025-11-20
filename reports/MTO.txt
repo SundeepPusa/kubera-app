@@ -1,0 +1,27 @@
+# ==== CONFIG (edit these 3 lines) ====
+START=2020-01-01
+END=2025-11-08
+OUT="/c/Users/Limak/Documents/osa-final/data/nse"
+HOLS="/c/Users/Limak/Documents/osa-final/holidays.txt"   # one YYYY-MM-DD per line
+
+# ==== RUN (skips weekends & holidays, hard-replaces each day) ====
+is_holiday(){ [ -f "$HOLS" ] && grep -qx "$1" "$HOLS"; }
+d="$START"
+while [ "$(date -d "$d" +%Y-%m-%d)" != "$(date -d "$END + 1 day" +%Y-%m-%d)" ]; do
+  wd=$(date -d "$d" +%w)  # 0=Sun, 6=Sat
+  if [ "$wd" -ne 0 ] && [ "$wd" -ne 6 ] && ! is_holiday "$d"; then
+    y=${d:0:4}; m=${d:5:2}; day=${d:8:2}
+    outdir="$OUT/$y/$m/$day"; mkdir -p "$outdir"
+    echo "[BHAV] $d → $outdir"
+    python -m reports.fetch_sec_bhavdata_full "$d" \
+      --outdir "$outdir" \
+      --truncate-day \
+      --series EQ,SM \
+      --retries 4 --timeout 30 \
+      || echo "BHAV failed $d"
+    sleep 1
+  else
+    echo "Skip (weekend/holiday): $d"
+  fi
+  d=$(date -d "$d + 1 day" +%Y-%m-%d)
+done

@@ -1,0 +1,48 @@
+# ---- CONFIG ----
+START=2020-01-01          # inclusive
+END=2025-11-08            # inclusive
+OUT=/c/Users/Limak/Documents/osa-final/data/nse
+HOLS=/c/Users/Limak/Documents/osa-final/holidays.txt
+
+# Create outdir just in case
+mkdir -p "$OUT"
+
+# Helper: returns 0 if $1 (YYYY-MM-DD) is in holidays file, else 1
+is_holiday() {
+  # exact full-line match
+  grep -qx "$1" "$HOLS" 2>/dev/null
+}
+
+d="$START"
+while [ "$(date -d "$d" +%Y-%m-%d)" != "$(date -d "$END + 1 day" +%Y-%m-%d)" ]; do
+  wd=$(date -d "$d" +%w)  # 0=Sun, 6=Sat
+  if [ "$wd" -ne 0 ] && [ "$wd" -ne 6 ] && ! is_holiday "$d"; then
+    y=$(date -d "$d" +%Y)
+    m=$(date -d "$d" +%m)
+    day=$(date -d "$d" +%d)
+    outdir="$OUT/$y/$m/$day"
+    mkdir -p "$outdir"
+
+    echo "[BHAV] $d → $outdir"
+    python -m reports.fetch_sec_bhavdata_full "$d" \
+      --outdir "$outdir" \
+      --truncate-day \
+      --series EQ,SM \
+      --retries 4 --timeout 30 \
+      || echo "BHAV failed $d"
+
+    # If you also want MTO delivery backfilled for older days / validation:
+    # echo "[MTO ] $d"
+    # python -m reports.fetch_mto_delivery "$d" \
+    #   --etl-only \
+    #   --retries 4 --timeout 30 \
+    #   || echo "MTO failed $d"
+
+    # Tiny pause to be nice to endpoints
+    sleep 1
+  else
+    echo "Skip (weekend/holiday): $d"
+  fi
+
+  d=$(date -d "$d + 1 day" +%Y-%m-%d)
+done
