@@ -1,22 +1,36 @@
-# Secrets
+# -------------------------------
+# SECRET FILES (NEVER COMMIT)
+# -------------------------------
 .env
+upstox_token.json
+upstox_access_token.json
+credentials.json
+auth_state.json
 
-# Local data
+# -------------------------------
+# LOCAL ENVIRONMENT
+# -------------------------------
+newenv/
+
+# -------------------------------
+# LOCAL DATA CACHE (Optional)
+# You can comment these out if needed
+# -------------------------------
 data/
-*.csv
-*.xlsx
 *.log
 *.db
 *.sqlite
-*.json
 
-# Python cache
+# -------------------------------
+# PYTHON CACHE
+# -------------------------------
 __pycache__/
 *.pyc
 
-# IDE / OS
+# -------------------------------
+# IDE / OS FILES
+# -------------------------------
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
-newenv/
