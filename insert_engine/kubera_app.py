@@ -16,6 +16,7 @@
 #   Popups/toasts also restricted to today. Fixed extra ')' in send-back callback.
 # - FIX: Replaced html.Style (not available) with dcc.Markdown(<style>..., dangerously_allow_html=True).
 # - CLEANUP (Render-ready): single Dash app instance + exported `server` for gunicorn.
+import dash_bootstrap_components as dbc
 
 import os
 import re
