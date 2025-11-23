@@ -6,12 +6,16 @@ upstox_token.json
 upstox_access_token.json
 credentials.json
 auth_state.json
-
+token.txt
+refresh_token.txt
 # -------------------------------
 # LOCAL ENVIRONMENT
 # -------------------------------
 newenv/
-
+# Python venv
+.venv/
+venv/
+env/
 # -------------------------------
 # LOCAL DATA CACHE (Optional)
 # You can comment these out if needed
@@ -34,3 +38,7 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+# Python junk
+__pycache__/
+*.py[cod]
+*.log
