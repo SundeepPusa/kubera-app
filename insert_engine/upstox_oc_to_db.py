@@ -18,6 +18,11 @@ import requests
 import psycopg2
 from psycopg2.extras import execute_values
 from dotenv import load_dotenv
+from insert_engine.utils_date import load_holidays, is_market_closed
+import datetime, os
+
+HOLIDAY_FILE = os.path.join(os.path.dirname(__file__), "holidays.txt")
+HOLIDAYS = load_holidays(HOLIDAY_FILE)
 
 # ------------------------------- Console Safety --------------------------------
 
@@ -520,6 +525,16 @@ def main():
 
     try:
         while True:
+            # 🔒 Market-closed gate (weekends + NSE holidays via holidays.txt)
+            today = date.today()
+            if is_market_closed(today, HOLIDAYS):
+                P(
+                    f"{ICON['skip']} Market closed today ({today.isoformat()}). "
+                    f"Skipping OC fetch; sleeping {LOOP_SECONDS}s."
+                )
+                time.sleep(LOOP_SECONDS)
+                continue
+
             # Hot-reload the expiry file if changed
             try:
                 mtime = os.path.getmtime(EXPIRY_FILE)
