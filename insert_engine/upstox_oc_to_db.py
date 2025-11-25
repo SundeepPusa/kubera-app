@@ -19,7 +19,8 @@ import psycopg2
 from psycopg2.extras import execute_values
 from dotenv import load_dotenv
 from insert_engine.utils_date import load_holidays, is_market_closed
-import datetime, os
+import os
+
 
 HOLIDAY_FILE = os.path.join(os.path.dirname(__file__), "holidays.txt")
 HOLIDAYS = load_holidays(HOLIDAY_FILE)
