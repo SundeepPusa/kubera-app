@@ -77,7 +77,7 @@ else:
 load_dotenv()
 
 # Upstox – instrument & expiry file
-INSTRUMENT_KEY = os.getenv("TEST_INSTRUMENT", "NSE_INDEX|nifty 50")
+INSTRUMENT_KEY = os.getenv("TEST_INSTRUMENT", "NSE_INDEX|Nifty 50")
 WINDOW_STRIKES = int(os.getenv("ATM_WINDOW", "10"))  # how many up/down from ATM
 
 # Expiry file
