@@ -18,10 +18,10 @@ import requests
 import psycopg2
 from psycopg2.extras import execute_values
 from dotenv import load_dotenv
+from zoneinfo import ZoneInfo  # for IST trading window
 from insert_engine.utils_date import load_holidays, is_market_closed
-import os
 
-
+# Holidays file (weekdays from NSE + your list; weekends handled by code)
 HOLIDAY_FILE = os.path.join(os.path.dirname(__file__), "holidays.txt")
 HOLIDAYS = load_holidays(HOLIDAY_FILE)
 
@@ -113,6 +113,16 @@ HTTP_READ_TIMEOUT = float(os.getenv("HTTP_READ_TIMEOUT", "12"))
 
 TOKEN_FILE = os.getenv("UPSTOX_TOKEN_FILE", "token.txt")
 
+# Engine identity for heartbeat table
+ENGINE_NAME = os.getenv("ENGINE_NAME", "nifty50_oc_ingester")
+
+# Trading window (IST) – can override via env if needed
+IST = ZoneInfo("Asia/Kolkata")
+TRADING_START_HOUR = int(os.getenv("TRADING_START_HOUR", "9"))
+TRADING_START_MINUTE = int(os.getenv("TRADING_START_MINUTE", "0"))
+TRADING_END_HOUR = int(os.getenv("TRADING_END_HOUR", "15"))
+TRADING_END_MINUTE = int(os.getenv("TRADING_END_MINUTE", "30"))
+
 # --------------------------------- Helpers -------------------------------------
 
 
@@ -198,6 +208,41 @@ def load_access_token() -> str:
         raise RuntimeError("Empty Upstox access token")
 
     return token
+
+
+# ----------------------------- Heartbeat helper --------------------------------
+
+
+def update_heartbeat(message: str, status: str = "ok") -> None:
+    """
+    Record a heartbeat for this engine into admin.engine_heartbeat.
+    Non-fatal: logs warning if it fails, but does not break main flow.
+    """
+    try:
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+        )
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO admin.engine_heartbeat (engine_name, last_heartbeat, last_message, status)
+                VALUES (%s, now(), %s, %s)
+                ON CONFLICT (engine_name)
+                DO UPDATE SET
+                  last_heartbeat = EXCLUDED.last_heartbeat,
+                  last_message   = EXCLUDED.last_message,
+                  status         = EXCLUDED.status;
+                """,
+                (ENGINE_NAME, message, status),
+            )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        P(f"{ICON['warn']} Heartbeat update failed: {e}")
 
 
 # ---------------------------- Upstox + Transform -------------------------------
@@ -458,6 +503,7 @@ def run_once_for_expiry(expiry_str: str):
         P("ok")
     except requests.exceptions.Timeout as e:
         P(f"{ICON['err']} Fetch timeout: {e}")
+        update_heartbeat(f"Fetch timeout for {expiry_str}: {e}", status="error")
         return
     except requests.exceptions.HTTPError as e:
         # Handle 401 specially – very common for expired token
@@ -469,18 +515,24 @@ def run_once_for_expiry(expiry_str: str):
             body = str(e)
 
         if status == 401:
-            P(
-                f"{ICON['err']} HTTP 401 Unauthorized from Upstox. "
-                f"Access token likely expired. Re-run auth_app.py to get a new token."
+            msg = (
+                "HTTP 401 Unauthorized from Upstox. "
+                "Access token likely expired. Re-run auth_app.py to get a new token."
             )
+            P(f"{ICON['err']} {msg}")
+            update_heartbeat(msg, status="error")
         else:
-            P(f"{ICON['err']} HTTP {status} | {body}")
+            msg = f"HTTP {status} | {body}"
+            P(f"{ICON['err']} {msg}")
+            update_heartbeat(msg, status="error")
         return
     except FileNotFoundError:
         # load_access_token() error already printed a helpful message
+        update_heartbeat("Token file missing for Upstox", status="error")
         return
     except Exception as e:
         P(f"{ICON['err']} Fetch error: {e}")
+        update_heartbeat(f"Fetch error for {expiry_str}: {e}", status="error")
         return
 
     status = raw.get("status")
@@ -492,6 +544,7 @@ def run_once_for_expiry(expiry_str: str):
     P(f"Filtered rows to insert: {len(filtered_rows)}")
     if not filtered_rows:
         P(f"{ICON['skip']} No filtered data. Skipping insert.")
+        update_heartbeat("No filtered rows to insert", status="ok")
         return
 
     # Flatten
@@ -512,8 +565,10 @@ def run_once_for_expiry(expiry_str: str):
         insert_rows(conn, flat)
         conn.close()
         P("done.")
+        update_heartbeat(f"Inserted {len(flat)} rows for expiry {expiry_str}", status="ok")
     except Exception as e:
         P(f"{ICON['err']} DB insert error: {e}")
+        update_heartbeat(f"DB insert error for {expiry_str}: {e}", status="error")
 
 
 def main():
@@ -526,12 +581,39 @@ def main():
 
     try:
         while True:
-            # 🔒 Market-closed gate (weekends + NSE holidays via holidays.txt)
-            today = date.today()
-            if is_market_closed(today, HOLIDAYS):
+            # Current time in IST (India market time)
+            now_ist = datetime.now(tz=IST)
+            today_ist = now_ist.date()
+
+            # 1) Weekend / NSE holiday gate
+            if is_market_closed(today_ist, HOLIDAYS):
                 P(
-                    f"{ICON['skip']} Market closed today ({today.isoformat()}). "
-                    f"Skipping OC fetch; sleeping {LOOP_SECONDS}s."
+                    f"{ICON['skip']} Market closed today by holiday/weekend "
+                    f"({today_ist.isoformat()} IST). Sleeping {LOOP_SECONDS}s."
+                )
+                update_heartbeat(
+                    f"Market closed (holiday/weekend) {today_ist.isoformat()}",
+                    status="ok",
+                )
+                time.sleep(LOOP_SECONDS)
+                continue
+
+            # 2) Trading hours gate (default 09:00–15:30 IST)
+            hm = (now_ist.hour, now_ist.minute)
+            start_hm = (TRADING_START_HOUR, TRADING_START_MINUTE)
+            end_hm = (TRADING_END_HOUR, TRADING_END_MINUTE)
+
+            if hm < start_hm or hm > end_hm:
+                P(
+                    f"{ICON['skip']} Outside trading hours "
+                    f"{start_hm[0]:02d}:{start_hm[1]:02d}-"
+                    f"{end_hm[0]:02d}:{end_hm[1]:02d} IST. "
+                    f"Current IST={now_ist.strftime('%H:%M')}. "
+                    f"Sleeping {LOOP_SECONDS}s."
+                )
+                update_heartbeat(
+                    f"Outside trading hours, IST={now_ist.strftime('%H:%M')}",
+                    status="ok",
                 )
                 time.sleep(LOOP_SECONDS)
                 continue
@@ -550,6 +632,7 @@ def main():
             expiries_to_run = _pick_upcoming_expiries(cached_dates, NUM_EXPIRIES_PER_CYCLE)
             if not expiries_to_run:
                 P(f"{ICON['warn']} No valid expiries found. Waiting…")
+                update_heartbeat("No valid expiries found in file", status="ok")
             else:
                 P(f"{ICON['run']} Expiries this cycle: {expiries_to_run}")
                 for ex in expiries_to_run:
@@ -559,6 +642,7 @@ def main():
             time.sleep(LOOP_SECONDS)
     except KeyboardInterrupt:
         P(f"\n{ICON['stop']} Stopped by user.")
+        update_heartbeat("Stopped by user (KeyboardInterrupt)", status="stopped")
 
 
 if __name__ == "__main__":
