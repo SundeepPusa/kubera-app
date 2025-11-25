@@ -16,7 +16,6 @@
 #   Popups/toasts also restricted to today. Fixed extra ')' in send-back callback.
 # - FIX: Replaced html.Style (not available) with dcc.Markdown(<style>..., dangerously_allow_html=True).
 # - CLEANUP (Render-ready): single Dash app instance + exported `server` for gunicorn.
-import dash_bootstrap_components as dbc
 
 import os
 import re
@@ -748,8 +747,11 @@ ticker_css = dcc.Markdown(
 # Dash app (single instance, Render-ready)
 # ----------------------------------
 external_stylesheets = [dbc.themes.BOOTSTRAP]
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP],
-                suppress_callback_exceptions=True)
+app = dash.Dash(
+    __name__,
+    external_stylesheets=external_stylesheets,
+    suppress_callback_exceptions=True,
+)
 app.title = "KUBERA"
 server = app.server   # <-- use this in Render / gunicorn
 
@@ -1262,6 +1264,7 @@ def open_trades_rows():
             if v is not None:
                 r[k] = str(v)
         r.setdefault("tm_badge", "—")
+        r.setdefault("copilot_comment", "")
         out.append(r)
     devlog("rows.open_trades", count=len(out))
     return out
@@ -2216,9 +2219,11 @@ def do_send_back(n, data, selected_rows):
         sendback_trades_by_id(ids)
     return 0
 
+
 @server.route("/_healthz")
 def healthz():
     return "ok", 200
+
 
 # ---------- Final wiring -------------
 if __name__ == "__main__":
