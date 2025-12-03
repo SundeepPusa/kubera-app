@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kubera Insights – Smart Money Market Intelligence</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Kubera Insights is an AI-driven market intelligence platform that decodes smart money footprints, option chain behavior and delivers high-confidence alpha insights." />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --color-bg: #0D1E46;
+      --color-bg-alt: #071024;
+      --color-primary: #17468F;
+      --color-accent: #D4AF37;
+      --color-accent-soft: #0CA678;
+      --color-text-main: #FFFFFF;
+      --color-text-muted: #9CA3AF;
+      --color-card-bg: #101B36;
+      --radius-lg: 18px;
+      --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+      --max-width: 1120px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top, #17468F 0, #0D1E46 40%, #020617 100%);
+      color: var(--color-text-main);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      backdrop-filter: blur(18px);
+      background: linear-gradient(to bottom, rgba(3,7,18,0.9), rgba(3,7,18,0.5));
+      border-bottom: 1px solid rgba(148,163,184,0.25);
+    }
+    .navbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0, #D4AF37 0, #B38A20 30%, #4B3D18 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 2px rgba(212,175,55,0.35);
+    }
+    .brand-icon span {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: #020617;
+    }
+    .brand-text-main {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      font-size: 1rem;
+    }
+    .brand-text-sub {
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+    }
+
+    .nav-links {
+      display: none;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+    }
+    .nav-cta {
+      display: none;
+    }
+
+    /* HERO */
+    .hero {
+      padding: 2.8rem 0 3.4rem;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr;
+      gap: 2.4rem;
+      align-items: center;
+    }
+    @media (min-width: 900px) {
+      .hero-grid {
+        grid-template-columns: 1.1fr 1.1fr;
+      }
+      .nav-links { display: flex; }
+      .nav-cta { display: block; }
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.25rem 0.7rem 0.25rem 0.25rem;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.85);
+      border: 1px solid rgba(148,163,184,0.5);
+      margin-bottom: 1rem;
+    }
+    .hero-pill-badge {
+      padding: 0.28rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(22,163,74,0.18);
+      color: #bbf7d0;
+      font-size: 0.7rem;
+    }
+    .hero-pill-text {
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+    }
+
+    .hero-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      font-size: 2.1rem;
+      line-height: 1.18;
+      margin-bottom: 0.9rem;
+    }
+    @media (min-width: 900px) {
+      .hero-title { font-size: 2.7rem; }
+    }
+
+    .hero-highlight {
+      color: var(--color-accent);
+    }
+
+    .hero-subtitle {
+      font-size: 0.95rem;
+      color: var(--color-text-muted);
+      max-width: 34rem;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1.4rem;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #D4AF37, #FACC15);
+      color: #111827;
+      padding: 0.7rem 1.4rem;
+      border-radius: 999px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      box-shadow: 0 14px 35px rgba(0,0,0,0.45);
+    }
+    .btn-primary span.arrow { font-size: 1.1rem; }
+
+    .btn-ghost {
+      padding: 0.68rem 1.1rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.7);
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+    }
+
+    .hero-mini {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem 1.4rem;
+    }
+    .hero-mini-item {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.78rem;
+      color: var(--color-text-muted);
+    }
+    .hero-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--color-accent-soft);
+    }
+
+    /* HERO CARD (right side) */
+    .hero-card {
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at top left, rgba(22,163,74,0.25) 0, rgba(15,23,42,0.96) 42%, #020617 100%);
+      border: 1px solid rgba(148,163,184,0.35);
+      padding: 1.1rem 1.0rem 1.1rem;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-card-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.7rem;
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+    }
+    .badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(22,163,74,0.2);
+      color: #bbf7d0;
+      font-size: 0.7rem;
+    }
+    .dot-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34,197,94,0.35);
+    }
+
+    .hero-symbol-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+    .hero-symbol-main {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .hero-symbol-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .hero-symbol-sub {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+    .hero-symbol-change {
+      text-align: right;
+      font-size: 0.8rem;
+    }
+    .hero-symbol-change .pos { color: #4ade80; }
+
+    .hero-metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.6rem;
+      margin-bottom: 0.9rem;
+      font-size: 0.72rem;
+    }
+    .metric-card {
+      background: rgba(15,23,42,0.85);
+      border-radius: 0.75rem;
+      padding: 0.55rem 0.6rem;
+      border: 1px solid rgba(148,163,184,0.3);
+    }
+    .metric-label {
+      color: var(--color-text-muted);
+      margin-bottom: 0.25rem;
+    }
+    .metric-value {
+      font-weight: 600;
+      font-size: 0.86rem;
+    }
+    .metric-tag {
+      font-size: 0.65rem;
+      margin-top: 0.1rem;
+      color: #22c55e;
+    }
+
+    .hero-chart {
+      height: 110px;
+      border-radius: 0.9rem;
+      background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(56,189,248,0.09));
+      border: 1px dashed rgba(148,163,184,0.7);
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text-muted);
+      font-size: 0.75rem;
+      text-align: center;
+      padding: 0.4rem;
+    }
+
+    .hero-footnote {
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    /* SECTION WRAPPERS */
+    .section {
+      padding: 2.2rem 0;
+      background: transparent;
+    }
+    .section-alt {
+      background: radial-gradient(circle at center, #0B1220 0, #020617 60%);
+    }
+    .section-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      font-size: 1.4rem;
+      margin-bottom: 0.4rem;
+    }
+    .section-subtitle {
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+      max-width: 32rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .three-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1rem;
+    }
+    @media (min-width: 900px) {
+      .three-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    .feature-card {
+      background: rgba(15,23,42,0.9);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148,163,184,0.4);
+      padding: 1.0rem 1.0rem;
+    }
+    .feature-title {
+      font-size: 0.98rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+    .feature-text {
+      font-size: 0.84rem;
+      color: var(--color-text-muted);
+      line-height: 1.6;
+    }
+
+    /* PRICING */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.1rem;
+      margin-top: 1rem;
+    }
+    @media (min-width: 800px) {
+      .pricing-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+    .pricing-card {
+      background: rgba(15,23,42,0.92);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148,163,184,0.6);
+      padding: 1.1rem 1.0rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+    .pricing-card.highlight {
+      border-color: var(--color-accent);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+      transform: translateY(-4px);
+    }
+    .pricing-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .pricing-price {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    .pricing-period {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+    }
+    .pricing-list {
+      margin-top: 0.3rem;
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      list-style: none;
+    }
+    .pricing-list li {
+      margin-bottom: 0.15rem;
+      display: flex;
+      gap: 0.4rem;
+    }
+    .pricing-list span.bullet {
+      color: var(--color-accent-soft);
+    }
+    .pricing-cta {
+      margin-top: 0.6rem;
+    }
+
+    /* FOOTER */
+    .footer {
+      border-top: 1px solid rgba(148,163,184,0.2);
+      padding: 1.3rem 0 1.8rem;
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+    @media (min-width: 800px) {
+      .footer-inner {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+    }
+    .footer-links a {
+      font-size: 0.78rem;
+    }
+
+    /* Simple hover */
+    button:hover, .btn-primary:hover, .btn-ghost:hover {
+      opacity: 0.95;
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div class="brand">
+        <div class="brand-icon">
+          <span>K</span>
+        </div>
+        <div>
+          <div class="brand-text-main">Kubera Insights</div>
+          <div class="brand-text-sub">Smart Money Alpha</div>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#about">About</a>
+      </nav>
+      <div class="nav-cta">
+        <a href="#pricing">
+          <button class="btn-ghost">Start for ₹24</button>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <!-- Left -->
+        <div>
+          <div class="hero-pill">
+            <div class="hero-pill-badge">New</div>
+            <div class="hero-pill-text">AI market intelligence for serious traders</div>
+          </div>
+          <h1 class="hero-title">
+            Smart Insights. Real <span class="hero-highlight">Alpha</span>.<br/> Powered by Kubera.
+          </h1>
+          <p class="hero-subtitle">
+            AI-driven option chain and market analytics that decode smart money footprints, detect alpha patterns and
+            give you high-confidence trading insights in seconds.
+          </p>
+          <div class="hero-actions">
+            <a href="#pricing">
+              <button class="btn-primary">
+                <span>Start for ₹24</span>
+                <span class="arrow">→</span>
+              </button>
+            </a>
+            <a href="#features">
+              <button class="btn-ghost">
+                <span>Explore live-style insights</span>
+              </button>
+            </a>
+          </div>
+          <div class="hero-mini">
+            <div class="hero-mini-item">
+              <div class="hero-dot"></div>
+              <span>Smart money footprint tracking</span>
+            </div>
+            <div class="hero-mini-item">
+              <div class="hero-dot"></div>
+              <span>Gamma & IV behavior insight</span>
+            </div>
+            <div class="hero-mini-item">
+              <div class="hero-dot"></div>
+              <span>Multi-timeframe market structure</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right hero card -->
+        <div class="hero-card" aria-label="Kubera Insights dashboard preview">
+          <div class="hero-card-header">
+            <div>Live Insight Snapshot</div>
+            <div class="badge-live">
+              <div class="dot-pulse"></div>
+              <span>Market Open</span>
+            </div>
+          </div>
+          <div class="hero-symbol-row">
+            <div class="hero-symbol-main">
+              <div class="hero-symbol-name">NIFTY 50 – Alpha Lens</div>
+              <div class="hero-symbol-sub">Smart Money Bias · Last 30 min</div>
+            </div>
+            <div class="hero-symbol-change">
+              <div class="pos">+22.4% Alpha Score</div>
+              <div>Trend: Bullish Bias</div>
+            </div>
+          </div>
+          <div class="hero-metric-grid">
+            <div class="metric-card">
+              <div class="metric-label">CE OI Shift</div>
+              <div class="metric-value">+18.2%</div>
+              <div class="metric-tag">One-sided build-up</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">PE Unwinding</div>
+              <div class="metric-value">-12.7%</div>
+              <div class="metric-tag">Short-covering</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">IV Regime</div>
+              <div class="metric-value">Rising</div>
+              <div class="metric-tag">Gamma attention</div>
+            </div>
+          </div>
+          <div class="hero-chart">
+            (Dashboard sparkline here – CE/PE OI & price path over last 60 minutes)
+          </div>
+          <div class="hero-footnote">
+            <span>3-minute & 30-minute alignment confirmed.</span>
+            <span>Signal quality: High · Generated by Alpha Engine v1.0</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features" class="section section-alt">
+      <div class="container">
+        <h2 class="section-title">Why Kubera Insights?</h2>
+        <p class="section-subtitle">
+          Built to reveal what institutions are doing — not the noise. Every snapshot, score and remark focuses on smart
+          money behavior and high-probability setups.
+        </p>
+        <div class="three-grid">
+          <div class="feature-card">
+            <div class="feature-title">Smart Money Footprint Tracker</div>
+            <div class="feature-text">
+              Detect one-sided OI buildups, reversals, traps and pressure zones across strikes and expiries — in real time.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title">Option Chain Alpha Scanner</div>
+            <div class="feature-text">
+              Scan OI, volume, IV, delta, gamma, vega and theta across the entire chain and highlight only meaningful patterns.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-title">Behavioral Market Engine</div>
+            <div class="feature-text">
+              Multi-timeframe logic (3m, 5m, 30m) to understand regime shifts, trend strength and exhaustion – not just raw data.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING -->
+    <section id="pricing" class="section">
+      <div class="container">
+        <h2 class="section-title">Simple, Trader-Friendly Pricing</h2>
+        <p class="section-subtitle">
+          Start with a low-risk starter plan, experience the engine, then upgrade to full Pro access once you’re ready.
+        </p>
+
+        <div class="pricing-grid">
+          <!-- Starter -->
+          <div class="pricing-card">
+            <div class="pricing-name">Starter Access</div>
+            <div class="pricing-price">₹24</div>
+            <div class="pricing-period">30 days · Intro access</div>
+            <ul class="pricing-list">
+              <li><span class="bullet">•</span>Full dashboard access</li>
+              <li><span class="bullet">•</span>Smart money footprints</li>
+              <li><span class="bullet">•</span>Basic alpha insights</li>
+            </ul>
+            <div class="pricing-cta">
+              <button class="btn-primary">Start with ₹24</button>
+            </div>
+          </div>
+
+          <!-- Pro -->
+          <div class="pricing-card highlight">
+            <div class="pricing-name">Pro Plan</div>
+            <div class="pricing-price">₹299</div>
+            <div class="pricing-period">per month · For serious traders</div>
+            <ul class="pricing-list">
+              <li><span class="bullet">•</span>Everything in Starter</li>
+              <li><span class="bullet">•</span>Behavioral AI engine</li>
+              <li><span class="bullet">•</span>Multi-expiry insights</li>
+              <li><span class="bullet">•</span>Sentiment & regime radar</li>
+            </ul>
+            <div class="pricing-cta">
+              <button class="btn-primary">Get Pro for ₹299</button>
+            </div>
+          </div>
+
+          <!-- Annual -->
+          <div class="pricing-card">
+            <div class="pricing-name">Annual Access</div>
+            <div class="pricing-price">₹2,999</div>
+            <div class="pricing-period">per year · Save more</div>
+            <ul class="pricing-list">
+              <li><span class="bullet">•</span>12 months full access</li>
+              <li><span class="bullet">•</span>Includes new features</li>
+              <li><span class="bullet">•</span>Priority support</li>
+            </ul>
+            <div class="pricing-cta">
+              <button class="btn-ghost">Coming soon</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT / CONTACT SHORT -->
+    <section id="about" class="section section-alt">
+      <div class="container">
+        <h2 class="section-title">About Kubera Insights</h2>
+        <p class="section-subtitle">
+          Kubera Insights is built for traders who want clarity over chaos. We focus on behavior, structure and smart money – not random signals.
+        </p>
+        <p style="font-size:0.86rem; color:var(--color-text-muted); max-width:40rem; line-height:1.7;">
+          Behind the engine is a research-driven builder obsessed with options data, OI structures and market behavior.
+          The goal is simple: give traders an unfair informational edge, in an interface that feels fast, clear and trustworthy.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div>© <span id="year"></span> Kubera Insights. Decode Smart Money. Capture Alpha.</div>
+      <div class="footer-links">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#about">About</a>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
