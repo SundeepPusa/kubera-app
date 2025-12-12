@@ -853,6 +853,21 @@ def load_52wk_stats(conn, folder: Path, trade_date: date):
         if (row[3] is not None or row[5] is not None)
     ]
 
+    # ------------------------------------------------------------------
+    # NEW: De-duplicate by (symbol) for this trade_date to avoid
+    #      PK conflicts on (trade_date, symbol) when NSE sends
+    #      multiple lines for the same symbol (e.g. SHIVAUM, BETA).
+    #      Last occurrence wins.
+    # ------------------------------------------------------------------
+    dedup_map = {}
+    for row in rows:
+        # row = (trade_date, symbol, series, high_price, high_date, low_price, low_date)
+        symbol = row[1]
+        dedup_map[symbol] = row
+
+    rows = list(dedup_map.values())
+    # ------------------------------------------------------------------
+
     if not rows:
         debug_no_data("cm_52wk_stats", source_rows, first_keys)
 
@@ -874,7 +889,6 @@ def load_52wk_stats(conn, folder: Path, trade_date: date):
         cleanup_sql="DELETE FROM eod.cm_52wk_stats WHERE trade_date = %s",
         cleanup_params=(trade_date,),
     )
-
 
 def load_sme_bhav(conn, folder: Path, trade_date: date):
     pattern = f"sme{trade_date.strftime('%d%m%Y')}.csv"
